@@ -1,0 +1,7 @@
+node_modules/
+server/certs/
+server/srv.log
+server/data/
+server/submissions/*
+!server/submissions/.gitkeep
+.env

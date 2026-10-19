@@ -1,0 +1,23 @@
+app = "deco3500-capsule"   # change if the name is taken: fly launch will prompt
+primary_region = "syd"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"     # keep running so in-flight sockets/crews are never cut mid-demo
+  auto_start_machines = true
+  min_machines_running = 1       # exactly one machine: socket rooms are in memory
+
+[mounts]
+  source = "capsule_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

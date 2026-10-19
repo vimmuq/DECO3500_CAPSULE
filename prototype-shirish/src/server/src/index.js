@@ -19,7 +19,7 @@ process.on("unhandledRejection", (e) => console.error("Unhandled rejection (serv
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
-const SUBMISSIONS_DIR = path.join(__dirname, "..", "submissions");
+const SUBMISSIONS_DIR = process.env.SUBMISSIONS_DIR || path.join(__dirname, "..", "submissions");
 // The participant app, exported for the web (`npx expo export --platform web` in /app,
 // output copied here by `npm run build-web`). Served at "/" so any phone or laptop on the
 // same Wi-Fi just opens http://<this-computer's-ip>:4000 — no app install, no host screen.

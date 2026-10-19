@@ -1,0 +1,12 @@
+**/node_modules
+server/certs
+server/data
+server/submissions
+server/srv.log
+app/**
+!app/src/lib/avatars.js
+colour-game
+rescue-game
+*.bat
+*.sh
+.claude
