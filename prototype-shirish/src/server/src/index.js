@@ -678,7 +678,7 @@ io.on("connection", (socket) => {
   socket.on(
     "summon_ready",
     asMember(({ crew, member, reply }) => {
-      if (crew.phase !== "timejump" || Date.now() - crew.phaseStartedAt < TIMING.warpMs) return reply({ error: "Not yet." });
+      if (crew.phase !== "timejump") return reply({ error: "Not yet." }); // (the Earth demo's next arrow can bring the email in early)
       markSummonReady(crew, member.id);
       reply({ ok: true });
       summonCheck(crew);

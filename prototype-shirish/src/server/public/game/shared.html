@@ -20,7 +20,13 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
   display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.35)}
 #navc{flex:1;max-width:360px;display:flex;align-items:center;gap:10px;padding:6px 12px 6px 6px;border-radius:16px;
   background:rgba(14,8,40,.85);border:2px solid #ffd166;box-shadow:0 0 0 3px rgba(0,0,0,.2)}
+#navc{position:relative}
 #compass{width:58px;height:58px;flex:none}
+/* the island bar's message layer: covers the navigation read-out while the crew is still getting to grips with shared controls, and for "Great job" */
+#navmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:14px;background:rgba(14,8,40,.97);
+  font-size:17px;font-weight:800;color:#ffd166;text-align:center;line-height:1.15;opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .45s ease,transform .45s ease}
+#navmsg.show{opacity:1;transform:none}
+#navmsg.great{color:#7dffb0}
 .nt{flex:1;min-width:0;font-size:12px;line-height:1.2;color:#d8ccff}
 .nt strong{display:block;font-size:21px;color:#fff;line-height:1.1}
 #sub{font-weight:700;color:#ffd166;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -30,15 +36,15 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
 /* who holds which control */
 #roster{position:fixed;z-index:5;left:0;right:0;top:calc(max(10px,env(safe-area-inset-top)) + 104px);display:none;flex-wrap:wrap;justify-content:center;gap:5px;padding:0 10px;pointer-events:none}
 #roster.show{display:flex}
-#others{position:fixed;z-index:5;right:max(10px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));display:none;flex-direction:column;gap:5px;padding:7px 9px 9px;
-  width:164px;border-radius:18px;background:rgba(8,5,22,.96);border:2px solid rgba(225,210,255,.75);pointer-events:none}
+#others{position:fixed;z-index:5;right:max(10px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));display:none;flex-direction:column;gap:7px;padding:10px 12px 12px;
+  width:214px;border-radius:20px;background:rgba(8,5,22,.97);border:3px solid #ffd166;box-shadow:0 6px 22px rgba(0,0,0,.55);pointer-events:none}
 #others.show:not(:empty){display:flex}
-#others h4{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#fff;text-align:center;margin-bottom:1px}
-.oth{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 9px;border-radius:12px;background:#4a4590;box-shadow:0 3px 0 rgba(0,0,0,.4);font-size:12px;font-weight:800;line-height:1.1;color:#fff}
+#others h4{font-size:13.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#ffd166;text-align:center;margin-bottom:2px}
+.oth{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:14px;background:#4a4590;box-shadow:0 3px 0 rgba(0,0,0,.4);font-size:15px;font-weight:800;line-height:1.1;color:#fff}
 .oth span{color:#ffd166}
-.oth b{font-weight:800;color:#fff;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:82px}
+.oth b{font-weight:800;color:#fff;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:112px}
 .oth.act{background:#ffd166}.oth.act span,.oth.act b{color:#2b1060}
-@media(max-width:700px){#others{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 168px);width:150px}}
+@media(max-width:700px){#others{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 168px);width:190px}}
 .rch{display:flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;border-radius:999px;background:rgba(8,5,22,.92);font-size:12px;font-weight:800;color:#fff;transition:background .08s,color .08s}
 .rch i{width:12px;height:12px;border-radius:50%;display:block;flex:none}
 .rch.me{box-shadow:0 0 0 2px #fff inset}
@@ -52,10 +58,12 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
 .rc.mine{display:block}
 .rc h4{font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#fff;margin-bottom:6px}
 .pair{display:flex;gap:8px}
-.cb{min-width:76px;height:70px;padding:0 10px;border-radius:16px;border:0;background:#3a3668;color:#fff;font:inherit;font-size:14px;font-weight:800;
-  display:grid;place-items:center;touch-action:none;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.4);line-height:1.15}
+.cb{min-width:98px;height:80px;padding:6px 8px 7px;border-radius:16px;border:0;background:#3a3668;color:#fff;font:inherit;font-size:14px;font-weight:800;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;touch-action:none;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.4);line-height:1.15}
 .cb{position:relative}
-.kh{position:absolute;left:7px;top:5px;font-style:normal;font-size:11px;font-weight:800;letter-spacing:.02em;opacity:1;color:#ffd166;pointer-events:none;white-space:nowrap}
+.kh{display:block;font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.01em;color:#ffd166;pointer-events:none;white-space:nowrap}
+.kh em{font-style:normal;font-size:13.5px;font-weight:800}
+.cb>span{display:flex;flex-direction:column;align-items:center;gap:2px}
 #skipGame{position:fixed;z-index:8;left:max(10px,env(safe-area-inset-left));top:calc(max(10px,env(safe-area-inset-top)) + 52px);padding:6px 11px;border-radius:10px;border:0;
   background:rgba(20,14,48,.85);color:#d8ccff;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
 #tip{position:fixed;z-index:7;display:none;max-width:210px;padding:7px 11px;border-radius:12px;background:#ffd166;color:#2b1060;font-size:12.5px;font-weight:800;line-height:1.25;text-align:center;
@@ -63,13 +71,16 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
 #tip.show{display:block;animation:tipin .25s ease-out}
 #tip::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;background:#ffd166;transform:translateX(-50%) rotate(45deg)}
 @keyframes tipin{from{opacity:0;margin-top:8px}to{opacity:1;margin-top:0}}
-.cb b{display:block;font-size:24px;line-height:1}
+.cb b{display:block;font-size:19px;line-height:1}
 .cb.on{background:#ffd166;color:#2b1060}
 .cb.on .kh,.cb.ready .kh{color:#2b1060}
 .cb.hi.on{background:#7fdbff;color:#0c2a3a}
-.cb.big{width:128px;height:70px;border-radius:16px}
+.cb.big{width:136px;height:80px;border-radius:16px}
 .cb.ready{background:#ffd166;color:#2b1060;animation:pulse .6s infinite alternate}
 @keyframes pulse{to{transform:scale(1.08)}}
+/* while nobody is steering or throttling (first minute, more than one real player): the bottom-right "Other controls" summary blinks red, slowly */
+#others.idle{animation:idleblink 2.4s ease-in-out infinite}
+@keyframes idleblink{0%,100%{border-color:rgba(225,210,255,.75);box-shadow:none}50%{border-color:#ff3b3b;box-shadow:0 0 0 2px #ff3b3b,0 0 16px 3px rgba(255,59,59,.7)}}
 
 /* ---------- overlays ---------- */
 .ov{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
@@ -77,6 +88,7 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
 .card{width:min(560px,100%);max-height:100%;overflow:auto;padding:4px}
 h1{font-size:clamp(28px,6vw,44px);line-height:1.02;font-weight:800;letter-spacing:-.02em}
 h1 span{display:block;font-size:.42em;letter-spacing:.01em;font-weight:700;color:#fff;margin-top:8px}
+h1 span.sub-lower{margin-top:18px}
 .lede{margin:10px 0 12px;font-size:15px;line-height:1.5;color:#fff}
 .crew{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px}
 .crew span{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:rgba(255,255,255,.07);font-size:13px;font-weight:700}
@@ -87,13 +99,19 @@ h1 span{display:block;font-size:.42em;letter-spacing:.01em;font-weight:700;color
 .ctl-ref{border-radius:16px;padding:10px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.35);margin:0 0 10px}
 .ctl-ref h2{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:#ffd166;margin-bottom:6px}
 .ctl-ref table{width:100%;border-collapse:collapse;font-size:14px}
+.ctl-ref th:last-child{color:#ffd166}
 .ctl-ref th{text-align:left;font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;padding:0 6px 6px 0}
 .ctl-ref td{padding:6px 6px 6px 0;border-top:1px solid rgba(255,255,255,.3);vertical-align:middle}
 .ctl-name{font-weight:800;color:#fff}
 .ctl-keys div{display:flex;gap:5px;flex-wrap:wrap}
 .ctl-keys kbd{font:inherit;font-size:13px;font-weight:800;padding:4px 8px;border-radius:8px;background:#3a3668;border:1px solid rgba(255,255,255,.45);color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.4);white-space:nowrap}
-.ctl-desc{color:#fff;line-height:1.35}
-.ctl-key{font-weight:800;color:#ffd166;white-space:nowrap;font-size:13.5px}
+.ctl-ref table{table-layout:fixed}
+.ctl-ref th:nth-child(1),.ctl-ref td:nth-child(1){width:19%}
+.ctl-ref th:nth-child(2),.ctl-ref td:nth-child(2){width:24%}
+.ctl-ref th:nth-child(4),.ctl-ref td:nth-child(4){width:25%}
+.ctl-desc{color:#fff;line-height:1.35;padding-right:14px !important;overflow-wrap:break-word}
+.ctl-who{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:10px !important;border-left:2px solid #ffd166;background:rgba(255,209,102,.14)}
+.ctl-who i{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:6px;vertical-align:middle}
 .arrow-demo{display:flex;align-items:center;gap:12px;border-radius:16px;padding:8px 12px;background:rgba(14,8,40,.85);border:2px solid #ffd166;margin:0 0 12px}
 .arrow-demo svg{flex:none}
 .arrow-demo p{font-size:14px;line-height:1.4;color:#fff}
@@ -105,8 +123,8 @@ h1 span{display:block;font-size:.42em;letter-spacing:.01em;font-weight:700;color
 #startOver{position:fixed;z-index:30;right:max(10px,env(safe-area-inset-right));top:calc(max(10px,env(safe-area-inset-top)) + 52px);
   height:32px;padding:0 12px;border-radius:10px;border:0;background:rgba(20,14,48,.85);color:#d8ccff;font:inherit;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.35)}
 /* maximum-contrast text for the control boxes and the instructions */
-.rc,.rc *,.ctl-ref,.ctl-ref *:not(.ctl-key),.arrow-demo p,.goal,.lede,.rch{color:#fff;text-shadow:0 0 1px #fff,0 1px 2px #000;-webkit-font-smoothing:antialiased}
-.ctl-ref h2,.ctl-ref .ctl-key,.rc .kh,.arrow-demo b{color:#ffd166;text-shadow:0 1px 2px #000}
+.rc,.rc *,.ctl-ref,.ctl-ref *,.arrow-demo p,.goal,.lede,.rch{color:#fff;text-shadow:0 0 1px #fff,0 1px 2px #000;-webkit-font-smoothing:antialiased}
+.ctl-ref h2,.rc .kh,.arrow-demo b{color:#ffd166;text-shadow:0 1px 2px #000}
 .cb.on,.cb.on *,.cb.ready,.cb.ready *,.rch.act{color:#1a0a3a;text-shadow:none}
 .cb{background:#4a4590}
 .cb.on,.cb.ready{background:#ffd166}.cb.hi.on{background:#7fdbff}
@@ -120,6 +138,7 @@ h1 span{display:block;font-size:.42em;letter-spacing:.01em;font-weight:700;color
   <div id="navc">
     <canvas id="compass" width="116" height="116"></canvas>
     <div class="nt"><span id="navlbl">Next memory</span><strong id="dist">–</strong><span id="sub">✦ 0 / 0 · 0:00</span></div>
+    <div id="navmsg"></div>
   </div>
   <button class="ib" id="mute" aria-label="Sound on or off">🔊</button>
 </div>
@@ -131,35 +150,35 @@ h1 span{display:block;font-size:.42em;letter-spacing:.01em;font-weight:700;color
 
 <div id="ctrl">
   <div class="rc" data-role="steer"><h4>Steering</h4><div class="pair">
-    <button class="cb" data-hold="steer" data-v="-1"><i class="kh">← / A</i><span><b>◀</b>Left</span></button>
-    <button class="cb" data-hold="steer" data-v="1"><i class="kh">→ / D</i><span><b>▶</b>Right</span></button></div></div>
+    <button class="cb" data-hold="steer" data-v="-1"><i class="kh">Keyboard - <em>← / A</em></i><span><b>◀</b>Left</span></button>
+    <button class="cb" data-hold="steer" data-v="1"><i class="kh">Keyboard - <em>→ / D</em></i><span><b>▶</b>Right</span></button></div></div>
   <div class="rc" data-role="throttle"><h4>Throttle</h4><div class="pair">
-    <button class="cb" data-hold="throttle" data-v="1"><i class="kh">↑ / W</i><span><b>▲</b>Forward</span></button>
-    <button class="cb" data-hold="throttle" data-v="-1"><i class="kh">↓ / S</i><span><b>▼</b>Back</span></button></div></div>
+    <button class="cb" data-hold="throttle" data-v="1"><i class="kh">Keyboard - <em>↑ / W</em></i><span><b>▲</b>Forward</span></button>
+    <button class="cb" data-hold="throttle" data-v="-1"><i class="kh">Keyboard - <em>↓ / S</em></i><span><b>▼</b>Back</span></button></div></div>
   <div class="rc" data-role="altitude"><h4>Altitude</h4><div class="pair">
-    <button class="cb hi" data-alt="1"><i class="kh">E</i><span><b>⇧</b>Up</span></button>
-    <button class="cb" data-alt="0"><i class="kh">Q</i><span><b>⇩</b>Down</span></button></div></div>
+    <button class="cb hi" data-alt="1"><i class="kh">Keyboard - <em>E</em></i><span><b>⇧</b>Up</span></button>
+    <button class="cb" data-alt="0"><i class="kh">Keyboard - <em>Q</em></i><span><b>⇩</b>Down</span></button></div></div>
   <div class="rc" data-role="pickup"><h4>Memory pick-up</h4>
-    <button class="cb big" id="grab"><i class="kh">P</i><span><b>✦</b>Pick up</span></button></div>
+    <button class="cb big" id="grab"><i class="kh">Keyboard - <em>P</em></i><span><b>✦</b>Pick up</span></button></div>
   <div class="rc" data-role="gun"><h4>Gun</h4>
-    <button class="cb big" data-hold="gun" data-v="1"><i class="kh">Space</i><span><b>◎</b>Fire</span></button></div>
+    <button class="cb big" data-hold="gun" data-v="1"><i class="kh">Keyboard - <em>Space</em></i><span><b>◎</b>Fire</span></button></div>
 </div>
 
 <div class="ov" id="menu">
   <div class="card">
-    <h1>Rescue Memories<span>Operate avatars - Restore memories</span></h1>
-    <p class="lede">Navigate the spaceship together, collect the memories and head back to the rocket.</p>
+    <h1>Rescue Memories<span class="sub-lower">Navigate together</span></h1>
+    <div style="height:10px"></div>
     <div class="crew" id="crewList"></div>
     <div class="ctl-ref">
       <h2>Controls</h2>
       <table>
-        <thead><tr><th>Control</th><th>Button</th><th>What it does</th><th>Keyboard</th></tr></thead>
+        <thead><tr><th>Control</th><th>Button</th><th>What it does</th><th>Assigned to</th></tr></thead>
         <tbody>
-          <tr><td class="ctl-name">Steering</td><td class="ctl-keys"><div><kbd>◀ Left</kbd><kbd>▶ Right</kbd></div></td><td class="ctl-desc">Turns the ship left or right.</td><td class="ctl-key">← / A &nbsp;·&nbsp; → / D</td></tr>
-          <tr><td class="ctl-name">Throttle</td><td class="ctl-keys"><div><kbd>▲ Forward</kbd><kbd>▼ Back</kbd></div></td><td class="ctl-desc">Speeds the ship up or slows it down and reverses.</td><td class="ctl-key">↑ / W &nbsp;·&nbsp; ↓ / S</td></tr>
-          <tr><td class="ctl-name">Altitude</td><td class="ctl-keys"><div><kbd>⇧ Up</kbd><kbd>⇩ Down</kbd></div></td><td class="ctl-desc">Flies High or Low to slip past debris.</td><td class="ctl-key">E &nbsp;·&nbsp; Q</td></tr>
-          <tr><td class="ctl-name">Memory pick-up</td><td class="ctl-keys"><div><kbd>✦ Pick up</kbd></div></td><td class="ctl-desc">Picks up a memory when you are close to it.</td><td class="ctl-key">P</td></tr>
-          <tr><td class="ctl-name">Gun</td><td class="ctl-keys"><div><kbd>◎ Fire</kbd></div></td><td class="ctl-desc">Shoots asteroids out of the way.</td><td class="ctl-key">Space</td></tr>
+          <tr data-role="steer"><td class="ctl-name">Steering</td><td class="ctl-keys"><div><kbd>◀ Left</kbd><kbd>▶ Right</kbd></div></td><td class="ctl-desc">Turns the ship left or right.</td><td class="ctl-who"></td></tr>
+          <tr data-role="throttle"><td class="ctl-name">Throttle</td><td class="ctl-keys"><div><kbd>▲ Forward</kbd><kbd>▼ Back</kbd></div></td><td class="ctl-desc">Speeds the ship up or slows it down and reverses.</td><td class="ctl-who"></td></tr>
+          <tr data-role="altitude"><td class="ctl-name">Altitude</td><td class="ctl-keys"><div><kbd>⇧ Up</kbd><kbd>⇩ Down</kbd></div></td><td class="ctl-desc">Flies High or Low to slip past debris.</td><td class="ctl-who"></td></tr>
+          <tr data-role="pickup"><td class="ctl-name">Memory pick-up</td><td class="ctl-keys"><div><kbd>✦ Pick up</kbd></div></td><td class="ctl-desc">Picks up a memory when you are close to it.</td><td class="ctl-who"></td></tr>
+          <tr data-role="gun"><td class="ctl-name">Gun</td><td class="ctl-keys"><div><kbd>◎ Fire</kbd></div></td><td class="ctl-desc">Shoots asteroids out of the way.</td><td class="ctl-who"></td></tr>
         </tbody>
       </table>
     </div>
@@ -238,7 +257,7 @@ function tip(role,text,ms){
   el.style.left=x+'px';el.style.top=(r.top-el.offsetHeight-12)+'px';
   clearTimeout(tipTimer);tipTimer=setTimeout(()=>el.classList.remove('show'),ms||4500);
 }
-const tips={debris:0,rock:0}; // each tip is shown for the first 3 times only
+const nearDebris=new Set(); // debris patches the ship is currently close to (so each approach prompts once)
 function burst(x,y,n,c,sp){for(let i=0;i<n;i++){const a=Math.random()*6.28,v=(sp||120)*(.3+Math.random());S.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.5+Math.random()*.6,max:1.1,c,s:1.5+Math.random()*2.5})}}
 function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(_){}}
 const fmt=t=>{t=Math.max(0,t);const m=Math.floor(t/60),s=Math.floor(t%60);return m+':'+String(s).padStart(2,'0')};
@@ -259,6 +278,7 @@ sock.on('game_state',g=>{
     roles=g.roles;for(const r in roles)if(roles[r]===PID)mine.add(r);
     $('crewList').innerHTML=members.map(m=>`<span><i style="background:${suit(m.avatar)}"></i>${m.id===PID?'You':m.name}</span>`).join('');
     document.querySelectorAll('.rc').forEach(c=>c.classList.toggle('mine',mine.has(c.dataset.role)));
+    document.querySelectorAll('.ctl-ref tr[data-role]').forEach(tr=>{const m=members.find(x=>x.id===roles[tr.dataset.role]);tr.querySelector('.ctl-who').innerHTML=m?`<i style="background:${suit(m.avatar)}"></i>${m.id===PID?'You':m.name}`:'–';});
     buildRoster();buildOthers();
   }
   WORLD.mems.forEach(m=>{const c=g.capsules.find(x=>x.id===m.id);if(c&&c.collected)m.got=true;m.byName=c&&c.byName;});
@@ -269,7 +289,7 @@ sock.on('game_state',g=>{
 sock.on('shared_ship',m=>{
   const first=!S.srv;
   S.srv={x:m.x,y:m.y,vx:m.vx,vy:m.vy,a:m.a,alt:m.alt,at:performance.now()};
-  S.pen=m.pen;S.inv=m.inv;S.inputs=m.inputs;
+  S.pen=m.pen;S.inv=m.inv;S.inputs=m.inputs;noteInputs(m.inputs);
   S.bullets=m.bullets.map(b=>({x:b[0],y:b[1],vx:b[2],vy:b[3],life:b[4],at:performance.now()}));
   if(first){S.ship.x=m.x;S.ship.y=m.y;S.ship.a=m.a;S.ship.alt=m.alt;}
   if(m.inputs.fire&&Math.random()<.4)snd('laser');
@@ -280,13 +300,13 @@ sock.on('shared_event',e=>{
   else if(e.type==='penalty')S.floats.push({x:e.x,y:e.y-20,t:'+'+e.n+'s',life:1.2,c:e.c||'#ff9f6e'});
   else if(e.type==='rock'){rocksGone.add(e.id);burst(e.x,e.y,18,'#c7b6e6',150);snd('explode');}
   else if(e.type==='bullet_hit'){burst(e.x,e.y,4,'#ffd166',90);snd('hit');}
-  else if(e.type==='hit'){S.shake=.35;buzz(70);snd('crack');if(tips.rock<3){tips.rock++;tip('gun','Shoot and destroy the stones');}}
+  else if(e.type==='hit'){S.shake=.35;buzz(70);snd('crack');if(mine.has('gun'))tip('gun','Hit a rock! Shoot the stones ◎',3200);}
   else if(e.type==='warp'){burst(S.ship.x,S.ship.y,40,'#c9a0ff',220);S.shake=.5;buzz([60,40,120]);snd('whoosh');}
 });
 sock.on('game_event',e=>{
   if(e.type==='flight_collected'){
     const m=WORLD&&WORLD.mems.find(x=>x.id===e.capsuleId);if(!m)return;
-    m.got=true;burst(m.x,m.y,36,'#ffd166',200);S.pickFlash=.4;
+    m.got=true;burst(m.x,m.y,36,'#ffd166',200);S.pickFlash=.4;greatUntil=Date.now()+2800;{const c=members.find(x=>x.name===e.byName);if(c)startedBy.add(c.id);}
     S.floats.push({x:m.x,y:m.y-30,t:'+1 · '+e.byName,life:1.6,c:'#ffd166'});
     say(`${e.byName} saved a memory: Capsule ${e.glimpse.capsule??'?'} · about ${e.glimpse.about}`,2.6);snd('rescued');buzz(40);
   }else if(e.type==='game_complete')showWin();
@@ -311,6 +331,28 @@ function paintRoster(){
   const I=S.inputs,on={steer:I.steer!==0,throttle:I.throttle!==0,altitude:I.alt===1,pickup:S.pickFlash>0,gun:I.fire===1};
   document.querySelectorAll('.rch,.oth').forEach(el=>el.classList.toggle('act',!!on[el.dataset.role]));
 }
+
+// ---------- the island bar: nav read-out normally; coaching until every real player has touched a control; "Great job" per capsule ----------
+const startedBy=new Set(); // real players who have controlled the ship (or picked up a memory)
+let greatUntil=0;
+function noteInputs(I){
+  const on={steer:I.steer!==0,throttle:I.throttle!==0,altitude:I.alt===1,gun:I.fire===1};
+  for(const r in on)if(on[r]&&roles[r])startedBy.add(roles[r]);
+}
+function everyoneStarted(){
+  const hum=(G&&G.humans)||[];
+  return !hum.length||hum.every(id=>startedBy.has(id));
+}
+const NAV_COACH=['Communicate with your crew','Controls are shared',null]; // null = the normal navigation read-out
+function paintNavMsg(){
+  const el=$('navmsg');if(!el)return;
+  let text=null,great=false;
+  if(Date.now()<greatUntil){text='Great job! ✦';great=true;}
+  else if(state==='play'&&!everyoneStarted())text=NAV_COACH[Math.floor(Date.now()/3200)%NAV_COACH.length];
+  if(text&&el.textContent!==text)el.textContent=text;
+  el.classList.toggle('show',!!text);el.classList.toggle('great',great);
+}
+setInterval(paintNavMsg,200);
 
 // ---------- controls: only the ones I was dealt ----------
 const src={steer:{},throttle:{},gun:{}},cur={steer:0,throttle:0,gun:0};
@@ -364,7 +406,14 @@ function update(dt){
   S.near=0;for(const h of WORLD.holes){const d=Math.hypot(h.x-s.x,h.y-s.y);if(d<h.R)S.near=Math.max(S.near,1-d/h.R);}
   const wasIn=S.inDebris;
   S.inDebris=0;for(const f of WORLD.debris)if(Math.hypot(f.x-s.x,f.y-s.y)<f.r&&(f.layer?s.alt>.35:s.alt<.65))S.inDebris=f.layer?2:1;
-  if(S.inDebris&&!wasIn&&state==='play'&&tips.debris<3){tips.debris++;tip('altitude',S.inDebris===1?'Control altitude up':'Control altitude down');}
+  // Every time the ship comes up on a patch of debris, remind whoever holds Altitude which way to go.
+  for(const f of WORLD.debris){
+    const close=Math.hypot(f.x-s.x,f.y-s.y)<f.r+140;
+    if(close&&!nearDebris.has(f)){nearDebris.add(f);if(state==='play'&&mine.has('altitude')){tip('altitude',f.layer?'High debris ahead: go DOWN ⇩':'Low debris ahead: go UP ⇧',3200);buzz(30);}}
+    else if(!close)nearDebris.delete(f);
+  }
+  const idle=state==='play'&&T()<60&&G&&(G.humans||[]).length>1&&S.inputs.steer===0&&S.inputs.throttle===0;
+  if($('others').classList.contains('idle')!==idle)$('others').classList.toggle('idle',idle);
   S.inRange=WORLD.mems.some(m=>!m.got&&Math.hypot(m.x-s.x,m.y-s.y)<PICKUP_R);
   for(let i=S.parts.length-1;i>=0;i--){const p=S.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97;p.life-=dt;if(p.life<=0)S.parts.splice(i,1);}
   for(let i=S.floats.length-1;i>=0;i--){const f=S.floats[i];f.y-=40*dt;f.life-=dt;if(f.life<=0)S.floats.splice(i,1);}

@@ -24,6 +24,8 @@
     <path d="M24 7v4M24 37v4M7 24h4M37 24h4" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
     <line class="hh" x1="24" y1="24" x2="24" y2="14" stroke="#ffb84c" stroke-width="3.5" stroke-linecap="round"/>
     <line class="mh" x1="24" y1="24" x2="24" y2="9" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="24" r="2.5" fill="#fff"/></svg>`;
+  const NEXT_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="5.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 5l7 7-7 7" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const PREV_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="5.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 5l-7 7 7 7" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   // timings of the "meanwhile" sequence, in ms from the start of the phase
   const FUT = { textEnd: 0, slideStart: 18600, slideMs: 7200, fadeOut: 1000 };
 
@@ -67,6 +69,8 @@
         <div class="f-frame"><img alt="${f.year}" data-src="${f.src}" /><div class="f-missing">Add <b>${f.src.split("/").pop()}</b> to<br>server/public/future/</div></div>
       </div>`).join("")}
     </div>
+    <button id="demo-prev" class="demo-btn" type="button" aria-label="Back">${PREV_SVG}</button>
+    <button id="demo-next" class="demo-btn" type="button" aria-label="Next">${NEXT_SVG}</button>
     <div id="flash"></div>
     <div id="alarm"></div>
   `;
@@ -75,7 +79,7 @@
     sky: $("sky"), atmo: $("atmo"), moon: $("moon"), earthWrap: $("earth-wrap"), earth: $("earth"),
     ground: $("ground"), pad: $("pad"), rocket: $("rocket"),
     warpHud: $("warp-hud"), whDay: $("wh-day"), whDate: $("wh-date"), whFill: $("wh-fill"),
-    flash: $("flash"), alarm: $("alarm"), cineA: $("cine-a"), cineB: $("cine-b"), cineC: $("cine-c"), cineD: $("cine-d"), bye: $("bye"), cineF: $("cine-f"), marquee: $("marquee"), day: $("day"), future: $("future"),
+    flash: $("flash"), demoNext: $("demo-next"), demoPrev: $("demo-prev"), alarm: $("alarm"), cineA: $("cine-a"), cineB: $("cine-b"), cineC: $("cine-c"), cineD: $("cine-d"), bye: $("bye"), cineF: $("cine-f"), marquee: $("marquee"), day: $("day"), future: $("future"),
     enginesBox: $("engines"), cargoFill: $("cargo-fill"), crewChars: $("crew-chars"),
   };
   // Engines are built to match the crew size (4 to 6) — one per crewmate.
@@ -420,6 +424,32 @@
 
   /** Show one future slide at a time; the gif restarts from its first frame each time its slide appears. */
   let shownSlide = -1;
+  // The glass "next" arrow (right edge) skips to the next stage of the Earth demo: the "go your own ways"
+  // screen, the banner, then each gif. It only moves this screen's own clock forward.
+  // On the last gif it brings the "Summon the rocket" email in early (the app listens for the message).
+  let skipMs = 0, curT = 0, mailSkipped = false;
+  const demoStages = () => [2520, 9600, ...FUTURE.map((_, i) => FUT.slideStart + i * FUT.slideMs)];
+  const demoFeedback = () => {
+    try { navigator.vibrate && navigator.vibrate(14); } catch (e) { /* no haptics here */ }
+    root.classList.add("skipping"); // quick fades so the current page really goes away
+    setTimeout(() => root.classList.remove("skipping"), 700);
+  };
+  el.demoNext.addEventListener("click", () => {
+    demoFeedback();
+    const now = curT + skipMs;
+    const next = demoStages().find((b) => b > now + 50);
+    if (next !== undefined) { skipMs += next - now; return; }
+    mailSkipped = true;
+    try { window.parent !== window && window.parent.postMessage({ type: "demo-mail" }, "*"); } catch (e) { /* standalone */ }
+  });
+  // Back goes to the start of the previous screen, but never before the "go your own ways" screen.
+  el.demoPrev.addEventListener("click", () => {
+    demoFeedback();
+    const now = curT + skipMs;
+    const stages = demoStages();
+    const here = stages.filter((b) => b <= now).length - 1;
+    if (here >= 1) skipMs += stages[here - 1] - now;
+  });
   function updateFuture(idx, t) {
     const slidesEnd = FUT.slideStart + FUT.slideMs * FUTURE.length;
     const out = t > slidesEnd - FUT.fadeOut; // everything fades away at the end
@@ -466,7 +496,7 @@
     let rk = { x: 0, y: 0, s: unit, r: 0, behind: false };
     let warp = 0, groundP = 0, atmo = 1, tunnel = 0, flash = 0, hud = false;
     let thrust = false;
-    let rocketO = 1, earthT = 0, cineA = false, cineB = false, cineC = false, cineD = false, byeOn = false, cineF = false, marq = false, dayOn = false, headTop = false, slide = -1, enginesOff = false;
+    let rocketO = 1, earthT = 0, cineA = false, cineB = false, cineC = false, cineD = false, byeOn = false, cineF = false, marq = false, dayOn = false, headTop = false, slide = -1, enginesOff = false, tEff = t, demoBtn = false, demoBack = false;
 
     const padPose = () => ({ x: padX(), y: groundY - (ROCKET_H / 2) * unit + 6, s: unit, r: 0 });
     const cruisePose = () => {
@@ -520,17 +550,24 @@
       rk = { x: L.home.x * W, y: L.home.y * H, s: 0, r: 25 };
       warp = 0.03;
       enginesOff = true;
-      const idx = Math.floor((t - FUT.slideStart) / FUT.slideMs);
       const slidesEnd = FUT.slideStart + FUT.slideMs * FUTURE.length;
+      curT = t;
+      // skipped ahead? the last gif then simply stays up until the real clock catches up
+      const tj = mailSkipped ? slidesEnd + 500 : skipMs > 0 && t < slidesEnd - 200 ? Math.min(t + skipMs, slidesEnd - 201) : t + skipMs;
+      tEff = tj;
+      const idx = Math.floor((tj - FUT.slideStart) / FUT.slideMs);
       // A daylight Earth scene slides in from the left; the heading stays on it while the gifs play.
       dayOn = t > 0; // stays on screen to the end, so the reunite line has the daylight scene to itself
-      cineD = byeOn = t > 2500 && t < 9500; // 2. the caption with the goodbye gif below it (7 s)
+      cineD = byeOn = tj > 2500 && tj < 9500; // 2. the caption with the goodbye gif below it (7 s)
       cineB = false; // (now one two-line message in cineD)
-      cineF = t >= FUT.slideStart && t < slidesEnd - 200; // "You on Earth..." comes in with the first gif and stays until the reunite line appears
-      marq = t >= 9600 && t < 17600; // 4. the glass banner, bottom centre, for 8 s (then 1 s before the gifs), then gone; the gifs start after it
+      cineF = tj >= FUT.slideStart && tj < slidesEnd - 200; // "You on Earth..." comes in with the first gif and stays until the reunite line appears
+      marq = tj >= 9600 && tj < 17600; // 4. the glass banner, bottom centre, for 8 s (then 1 s before the gifs), then gone; the gifs start after it
       // after the last gif the phones show the "Summon the rocket" email; the scene just keeps the daylight Earth
       headTop = true; // the heading sits at the top from the very start
-      if (t >= FUT.slideStart && t < slidesEnd - 200 && idx >= 0 && idx < FUTURE.length) slide = idx;
+      if (tj >= FUT.slideStart && tj < slidesEnd - 200 && idx >= 0 && idx < FUTURE.length) slide = idx;
+      // the arrow shows from the "go your own ways" screen through the last gif (after that comes the email)
+      demoBtn = tj > 2500 && tj < slidesEnd - 200;
+      demoBack = tj >= 9600 && tj < slidesEnd - 200; // (nothing to go back to from the first screen)
     } else if (phase === "landing" || phase === "revealed") {
       // Back where it all began. First the empty launch site on Earth (pad, ground, sky, moon, no rocket) for a
       // second; then the rocket comes down from above the screen onto the very pad it took off from, thrusters
@@ -569,6 +606,8 @@
         flash = bump(t, 120, 300) * 0.8;
       }
     }
+
+    if (phase !== "timejump") { skipMs = 0; mailSkipped = false; }
 
     // --- apply
     if (particles.length || tunnel > 0 || phase === "lost" || now - lastDraw >= 30) {
@@ -610,7 +649,9 @@
     cls(el.cineB, "top", headTop);
     cls(el.cineF, "top", headTop);
     cls(el.day, "show", dayOn);
-    updateFuture(slide, phase === "timejump" ? t : 0);
+    updateFuture(slide, phase === "timejump" ? tEff : 0);
+    cls(el.demoNext, "show", demoBtn);
+    cls(el.demoPrev, "show", demoBack);
   }
 
   /** The hatch blew: every memory capsule tumbles out into space around the rocket. */

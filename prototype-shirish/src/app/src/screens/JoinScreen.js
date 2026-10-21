@@ -1,12 +1,138 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, TextInput, StyleSheet, Pressable, Animated, Easing } from "react-native";
 import PrimaryButton from "../components/PrimaryButton";
 import Avatar from "../components/Avatar";
 import { CHARACTERS } from "../lib/avatars";
 import { colors, spacing, type } from "../lib/theme";
 
-// Prefilled for this version; shown read-only so people know they're settings, just not editable yet.
-const SETUP = { experience: "DECO3500 - Social & Mobile project", years: "24" };
+const EXPERIENCES = ["DECO3500 - Project Experience"];
+const YEAR_OPTIONS = [24];
+const DEFAULT_YEARS = 24;
+
+/** Slides/fades its children in from `from` (px offset on Y) when mounted. */
+function SlideIn({ from, children, style }) {
+  const t = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(t, { toValue: 1, duration: 450, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, []);
+  return (
+    <Animated.View style={[style, { opacity: t, transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [from, 0] }) }] }]}>
+      {children}
+    </Animated.View>
+  );
+}
+
+function Dropdown({ label, value, options, onChange, placeholder }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <View style={{ zIndex: open ? 10 : 1 }}>
+      <Text style={styles.label}>{label}</Text>
+      <Pressable style={[styles.input, styles.dropBtn, !!label && { marginTop: 8 }]} onPress={() => setOpen((o) => !o)}>
+        <Text numberOfLines={1} style={[styles.lockedText, { fontSize: 17 }, value == null && { color: colors.muted }]}>{value ?? placeholder}</Text>
+        <Text style={styles.lockIcon}>{open ? "▲" : "▼"}</Text>
+      </Pressable>
+      {open && (
+        <View style={styles.menu}>
+          {options.map((o) => (
+            <Pressable key={String(o)} style={styles.menuItem} onPress={() => { setOpen(false); onChange(o); }}>
+              <Text style={styles.lockedText}>{o}</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+/**
+ * First screen: "Join us" hero (small pulsing halo, gentle float) -> tap it ->
+ * experience dropdown drops in from the top -> years dropdown rises in from the bottom -> Continue.
+ */
+function SetupStep({ onContinue }) {
+  const [started, setStarted] = useState(false);
+  const [experience, setExperience] = useState(null);
+  const [years, setYears] = useState(DEFAULT_YEARS);
+  const [tip, setTip] = useState(false);
+  const float = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
+  const shake = useRef(new Animated.Value(0)).current;
+  const shaking = useRef(null);
+
+  // a small, smooth wiggle while the pointer is over "Join us"
+  const startShake = () => {
+    shaking.current?.stop();
+    shaking.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shake, { toValue: 1, duration: 90, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(shake, { toValue: -1, duration: 180, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(shake, { toValue: 0, duration: 90, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ])
+    );
+    shaking.current.start();
+  };
+  const stopShake = () => {
+    shaking.current?.stop();
+    Animated.timing(shake, { toValue: 0, duration: 120, useNativeDriver: true }).start();
+  };
+
+  useEffect(() => {
+    const loop = (v, ms) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(v, { toValue: 1, duration: ms, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(v, { toValue: 0, duration: ms, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ])
+      );
+    const a = loop(float, 2200);
+    const b = loop(pulse, 1800);
+    a.start();
+    b.start();
+    return () => { a.stop(); b.stop(); };
+  }, []);
+
+  return (
+    <View style={styles.setup}>
+      <Animated.View style={[styles.hero, { transform: [{ translateY: float.interpolate({ inputRange: [0, 1], outputRange: [-4, 4] }) }] }]}>
+        <Animated.View
+          style={[styles.halo, { pointerEvents: "none" }, { opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.6] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1.1] }) }] }]}
+        />
+        <Pressable onPress={() => setStarted(true)} onHoverIn={startShake} onHoverOut={stopShake} disabled={started} accessibilityRole="button" accessibilityLabel="Join us">
+          <Animated.View style={{ transform: [{ translateX: shake.interpolate({ inputRange: [-1, 1], outputRange: [-3, 3] }) }, { rotate: shake.interpolate({ inputRange: [-1, 1], outputRange: ["-1.5deg", "1.5deg"] }) }] }}>
+            <Text style={styles.joinUs}>Join us</Text>
+          </Animated.View>
+        </Pressable>
+        <Pressable onPress={() => setStarted(true)} onHoverIn={startShake} onHoverOut={stopShake} disabled={started} accessibilityRole="button">
+          <Text style={[styles.tagline, { textAlign: "center" }]}>{"Click here and\nsend your memories to space"}</Text>
+        </Pressable>
+      </Animated.View>
+
+      {started && (
+        <SlideIn from={-30} style={{ zIndex: 10, width: "90%", alignSelf: "center" }}>
+          <Dropdown label="SELECT YOUR EXPERIENCE" placeholder="Select your experience" value={experience} options={EXPERIENCES} onChange={setExperience} />
+        </SlideIn>
+      )}
+
+      {started && experience && (
+        <SlideIn from={30} style={{ gap: spacing.sm, width: "90%", alignSelf: "center" }}>
+          <View style={styles.yearsHead}>
+            <Text style={styles.label}>NO OF YEARS</Text>
+            <Pressable onPress={() => setTip((t) => !t)} onHoverIn={() => setTip(true)} onHoverOut={() => setTip(false)} accessibilityLabel="More info">
+              <Text style={styles.info}>ⓘ</Text>
+            </Pressable>
+            {tip && <Text style={[styles.tooltip, { pointerEvents: "none" }]}>Your memories will be preserved for this many years.</Text>}
+          </View>
+          <Dropdown label="" value={years} options={YEAR_OPTIONS} onChange={setYears} />
+        </SlideIn>
+      )}
+
+      {started && experience && (
+        <SlideIn from={30} style={{ marginTop: "auto", width: "90%", alignSelf: "center" }}>
+          <PrimaryButton title="Continue" onPress={onContinue} />
+        </SlideIn>
+      )}
+    </View>
+  );
+}
 
 /**
  * Two short steps instead of one long form (testers typed their name into the code box):
@@ -38,34 +164,7 @@ export default function JoinScreen({ onCreate, onJoin, busy, error, initialCode,
   const server = needsServer ? { ip: ip.trim(), port: port.trim() } : null;
   const codeOk = code.trim().length >= 4;
 
-  if (step === 0) {
-    return (
-      <View style={styles.form}>
-        <Text style={[styles.title, { fontSize: 14, letterSpacing: 1.5 }]}>SETUP</Text>
-        <Text style={styles.lead}>
-          Preserve your memories with our capsule in space.
-        </Text>
-
-        <Text style={styles.label}>EXPERIENCE</Text>
-        <Text style={[styles.hint, styles.underHeading]}>Memories of this experience/event will be preserved</Text>
-        <View style={styles.locked}>
-          <Text style={styles.lockedText}>{SETUP.experience}</Text>
-          <Text style={styles.lockIcon}>🔒</Text>
-        </View>
-
-        <Text style={[styles.label, { marginTop: spacing.lg }]}>NO OF YEARS</Text>
-        <Text style={[styles.hint, styles.underHeading]}>Your memories will be preserved for this many years.</Text>
-        <View style={styles.locked}>
-          <Text style={styles.lockedText}>{SETUP.years}</Text>
-          <Text style={styles.lockIcon}>🔒</Text>
-        </View>
-
-        <View style={{ marginTop: spacing.md }}>
-          <PrimaryButton title="Continue" onPress={() => setStep(1)} />
-        </View>
-      </View>
-    );
-  }
+  if (step === 0) return <SetupStep onContinue={() => setStep(1)} />;
 
   if (step === 1) {
     return (
@@ -209,17 +308,17 @@ const styles = StyleSheet.create({
   codeInput: { letterSpacing: 6, fontWeight: "800", fontSize: 22, textAlign: "center" },
   avatars: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: spacing.xs },
   avatarBtn: { width: "23%", flexGrow: 1, alignItems: "center", paddingVertical: 6, borderRadius: 12, borderWidth: 2, borderColor: "transparent" },
-  locked: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-    opacity: 0.85,
-  },
+  setup: { flexGrow: 1, justifyContent: "flex-start", gap: spacing.lg, paddingTop: spacing.sm },
+  yearsHead: { flexDirection: "row", alignItems: "center", gap: 4, zIndex: 30 },
+  hero: { alignItems: "center", justifyContent: "center", paddingVertical: spacing.md },
+  halo: { position: "absolute", top: 38, left: "50%", marginLeft: -90, width: 180, height: 30, borderRadius: 15, backgroundColor: "rgba(76, 201, 240, 0.25)", boxShadow: "0 0 40px 14px rgba(76, 201, 240, 0.3)" },
+  joinUs: { fontSize: 56, fontWeight: "900", color: "#FFFFFF", letterSpacing: 2, textShadowColor: colors.accent, textShadowRadius: 10, textShadowOffset: { width: 0, height: 0 } },
+  tagline: { color: "#C4C9E0", fontSize: 16, marginTop: spacing.xs },
+  dropBtn: { flexDirection: "row", alignItems: "center", paddingVertical: 9 },
+  menu: { position: "absolute", top: "100%", left: 0, right: 0, marginTop: 4, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.panel, borderRadius: 10, overflow: "hidden", zIndex: 20 },
+  menuItem: { paddingHorizontal: 12, paddingVertical: 11 },
+  info: { color: colors.accent, fontSize: 12 },
+  tooltip: { position: "absolute", top: 22, left: 0, width: 300, zIndex: 50, color: "#FFFFFF", fontSize: 13, lineHeight: 18, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, backgroundColor: "rgba(40, 46, 80, 0.92)", boxShadow: "0 6px 18px rgba(0,0,0,0.5)" },
   lockedText: { flex: 1, color: "#FFFFFF", fontSize: 19 },
   lockIcon: { fontSize: 14 },
   meRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: spacing.xs },

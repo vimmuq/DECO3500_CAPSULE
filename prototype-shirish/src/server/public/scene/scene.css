@@ -385,3 +385,25 @@ html, body {
 #cine-b span, #cine-d span, #cine-f span { color: #fff; font-weight: 700; -webkit-text-stroke: 6px #000; paint-order: stroke fill; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
 
 
+
+/* glass back / next arrows: just a chevron on a soft blurred patch (no circle, no outline) */
+.demo-btn {
+  position: absolute; left: 78%; margin-left: -34px; top: 50%; z-index: 12; width: 68px; height: 68px; padding: 0; border: 0;
+  background: none; cursor: pointer; pointer-events: none; opacity: 0; transform: translateY(-50%);
+  transition: opacity .4s ease, transform .12s ease; display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.demo-btn::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255,255,255,0.42), rgba(255,255,255,0.16) 65%, rgba(255,255,255,0));
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent 100%); mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+}
+.demo-btn svg { position: relative; width: 30px; height: 30px; filter: drop-shadow(0 1px 3px rgba(20,60,120,.7)); }
+.demo-btn.show { opacity: 1; pointer-events: auto; }
+.demo-btn.show:hover { transform: translateY(-50%) translateX(3px); }
+.demo-btn.show:active { transform: translateY(-50%) scale(0.88); }
+#scene-root.skipping .cine, #scene-root.skipping .fslide, #scene-root.skipping #marquee, #scene-root.skipping #future { transition-duration: .2s !important; }
+#demo-prev { left: 22%; }
+#demo-prev.show:hover { transform: translateY(-50%) translateX(-3px); }
+#demo-prev.show:active { transform: translateY(-50%) scale(0.88); }

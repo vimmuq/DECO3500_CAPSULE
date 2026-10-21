@@ -64,7 +64,8 @@ function Envelope({ onOpen }) {
           </View>
         </Pressable>
       </Animated.View>
-      <Text style={styles.tap}>You have mail. Touch the envelope to open it</Text>
+      <Text style={styles.tap}>{`It's ${dateInYear(2025)} today. You have a message.
+Click to open.`}</Text>
     </View>
   );
 }
@@ -94,12 +95,13 @@ function ReadyList({ members, ready, selfId }) {
   );
 }
 
-/** Today's date, but in 2050. */
-function dateIn2050() {
+/** Today's date, but in the given year. */
+function dateInYear(year) {
   const d = new Date();
-  d.setFullYear(2050);
+  d.setFullYear(year);
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
+const dateIn2050 = () => dateInYear(2050);
 
 function Note({ crewName, iAmReady, onSummon }) {
   const [down, setDown] = useState(false);
@@ -152,7 +154,7 @@ const styles = StyleSheet.create({
   envelope: { width: 240, height: 160, borderRadius: 10, backgroundColor: "#f3ead2", overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.55, shadowRadius: 22, shadowOffset: { width: 0, height: 14 }, borderWidth: 1, borderColor: "rgba(0,0,0,0.15)" },
   envFlap: { position: "absolute", top: 0, left: 0, width: 0, height: 0, borderLeftWidth: 120, borderRightWidth: 120, borderTopWidth: 92, borderLeftColor: "transparent", borderRightColor: "transparent", borderTopColor: "#e2d5b0" },
   envSeal: { position: "absolute", left: 100, top: 66, width: 40, height: 40, borderRadius: 20, backgroundColor: "#e0213a", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "#ff7a8a" },
-  tap: { color: "#fff", fontSize: 14, fontWeight: "800", marginTop: 30, textAlign: "center", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 8 },
+  tap: { color: "#000", fontSize: 14, fontWeight: "800", marginTop: 30, lineHeight: 21, textAlign: "center", textShadowColor: "rgba(255,255,255,0.8)", textShadowRadius: 6 },
 
   mail: { width: "100%", maxWidth: 400, borderRadius: 14, overflow: "hidden", backgroundColor: "#fbfaf6", shadowColor: "#000", shadowOpacity: 0.5, shadowRadius: 24, shadowOffset: { width: 0, height: 14 } },
   mailBar: { backgroundColor: "#2b2f55", paddingHorizontal: 16, paddingVertical: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },

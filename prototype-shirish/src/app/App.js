@@ -347,8 +347,16 @@ export default function App() {
 
   // The "Summon the rocket" email arrives once the last future gif has played.
   const [summonOn, setSummonOn] = useState(false);
+  const [mailSkipped, setMailSkipped] = useState(false); // the Earth demo's last "next" arrow brings it in early
+  useEffect(() => {
+    if (Platform.OS !== "web") return undefined;
+    const onMsg = (e) => { if (e.data?.type === "demo-mail") setMailSkipped(true); };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, []);
   useEffect(() => {
     if (scene?.phase !== "timejump") {
+      setMailSkipped(false);
       setSummonOn(false);
       return undefined;
     }
@@ -393,7 +401,7 @@ export default function App() {
   return (
     <View style={styles.root}>
       <ExpoStatusBar style="light" />
-      <SceneBackground server={serverUrl ? server : null} code={joined ? code : null} />
+      <SceneBackground server={serverUrl ? server : null} code={joined ? code : null} interactive={scene?.phase === "timejump"} />
       {!panel && <View style={styles.scrim} pointerEvents="none" />}
       {fullScreenCollecting && view === "stars" && <View style={styles.capsuleScrim} pointerEvents="none" />}
 
@@ -406,7 +414,7 @@ export default function App() {
         </View>
       )}
 
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} pointerEvents="box-none">
         {screen === "join" && resolved && (
           <CrewPanel wide>
             <JoinScreen
@@ -515,7 +523,7 @@ export default function App() {
             )}
           </CrewPanel>
         )}
-        {screen === "scene" && summonOn && (
+        {screen === "scene" && (summonOn || mailSkipped) && (
           <SummonLetter
             members={members}
             summonReady={scene.summonReady}
